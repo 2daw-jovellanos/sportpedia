@@ -1,12 +1,8 @@
-<?php
-require_once "vistas/MainView.php";
-
-class Error500View extends MainView 
-{
-
-    function content() {
+<?php 
+    require_once "vistas/Ti.php";
+    Ti::extend("Mainview.phtml");
+    Ti::startBlock("content");
 ?>
-
 <div>
 <h1>Error 500. Algo gordo ha ocurrido<h1>
 Jiuston, tenemos un problema<br>
@@ -14,6 +10,5 @@ Vuelve en un ratito, a ver si lo hemos podido arreglar.
 </div>
 
 <?php
-    }
-
-}
+    Ti::endBlock();
+    Ti::endExtend();

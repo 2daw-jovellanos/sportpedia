@@ -1,0 +1,33 @@
+<?php require_once "Ti.php"; ?>
+<?php Ti::extend("MainView.phtml"); ?>
+
+<?php Ti::startBlock("content"); ?>
+<form action="" method="GET" id="formdeporte">
+    Mostrando: <select name="filtrodeporte" onchange="document.getElementById('formdeporte').submit();">
+        <option value="0" <?=$filtrodeporte==0?"SELECTED":""?>>Todos</option>
+        <?php foreach($deportes as $deporte): ?>
+            <option value="<?=$deporte->id?>" <?=$filtrodeporte==$deporte->id?"SELECTED":""?>><?=$deporte->nombre?></option>
+        <?php endforeach ?>
+    </select>
+</form>
+<div class="row">
+    <?php foreach ($deportistas as $deportista) { ?>
+        <div class="col-md-4 p-1">
+            <div class="card h-100">
+                <div style="padding-top:100%;background-size:cover;background-position:center;background-image:url('assets/fotos/<?=$deportista->img?>');" alt="">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title"><?=$deportista->nombre?></h5>
+                    <p class="card-text">
+                        <?=isset($deportista->nombre_local) ? " ($deportista->nombre_local) " : ""?>
+                        <?=$deportista->getEdad()?> años.<br>
+                        <strong><?=$deportes[$deportista->id_deporte]->nombre?></strong>
+                    </p>
+                    <a href="controller=ficha&id=<?=$deportista->id?>" class="btn btn-primary">Ver</a>
+                </div>
+            </div>
+        </div>
+    <?php } ?>
+</div>
+<?php Ti::endBlock(); ?>
+<?php Ti::endExtend(); ?>

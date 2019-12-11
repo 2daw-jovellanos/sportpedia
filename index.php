@@ -2,6 +2,7 @@
 require_once "cargarconfig.php";
 require_once "controladores/DeportistaController.php";
 
+
 $controller = $_REQUEST["controller"] ?? "listado";
 
 try {
@@ -14,6 +15,5 @@ try {
             die ("El controlador solicitado no existe");
     }
 } catch (Exception $ex) { 
-    require_once "vistas/Error404View.php";
-    (new Error500View)->render();
+    Ti::render("vistas/Error500view.phtml");
 }
