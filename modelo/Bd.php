@@ -166,11 +166,12 @@ class Klasto
                 $row = $resultset->fetch_assoc();
             }
             if ($row) {
+/* HAY UN BUG AQUI.
                 if (isset($row->id)) {
                     $resultado[$row->id] = $row;
-                } else {
+                } else { */
                     array_push($resultado, $row);
-                }
+/*                } */
                 
             }
         } while ($row);
