@@ -7,8 +7,8 @@ require_once "OrmException.php";
  * 
  * Uso:
  * <ul>
- *   <li>Inicializa: <code> Bd::init(host, user, pass, dbname) </code></li>
- *   <li>Obtén la instancia: <code> $bd = Bd::getInstance()</code></li>
+ *   <li>Inicializa: <code> Klasto::init(host, user, pass, dbname) </code></li>
+ *   <li>Obtén la instancia: <code> $bd = Klasto::getInstance()</code></li>
  *   <li>Usa 
  *     <ul>
  *       <li>-<code>query</code> y <code>queryOne</code> para una select</li>
@@ -20,7 +20,7 @@ require_once "OrmException.php";
  * La conexión se cierra en el destructor.
  * Esta clase es un <strong>singleton</strong>. Hay una sola instancia, y tiene una sola conexión.
  */
-class Bd
+class Klasto
 {
 
     /** La conexión al SGBD */
@@ -63,12 +63,12 @@ class Bd
     /**
      * Obtiene la instancia
      *
-     * @return Bd Devuelve una instancia única de esta clase.
+     * @return Klasto Devuelve una instancia única de esta clase.
      */
     public static function getInstance()
     {
         if (self::$instance == null) {
-            self::$instance = new Bd();
+            self::$instance = new Klasto();
         }
         return self::$instance;
     }
