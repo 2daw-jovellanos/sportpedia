@@ -1,14 +1,25 @@
-<?php 
-    require_once "vistas/Ti.php";
-    Ti::extend("Mainview.phtml");
-    Ti::startBlock("content");
-?>
-<div>
-<h1>Error 500. Algo gordo ha ocurrido<h1>
-Jiuston, tenemos un problema<br>
-Vuelve en un ratito, a ver si lo hemos podido arreglar.
-</div>
-
 <?php
-    Ti::endBlock();
-    Ti::endExtend();
+require_once "vistas/Ti.php";
+Ti::extend("Mainview.phtml"); ?>
+
+<?php Ti::startBlock("Title"); ?>
+Error gordo - Sportpedia
+<?php Ti::endBlock(); ?>
+
+<?php Ti::startBlock("content"); ?>
+<div>
+    <h1>¡Ay! Error 500. Algo gordo ha ocurrido</h1>
+    <p>Jiuston, tenemos un problema<br>
+        Vuelve en un ratito, a ver si lo hemos podido arreglar.</p>
+    <p>
+        Ahí val algo de info:
+    </p>
+
+    <pre>
+    <?= $ex ?>
+</pre>
+</div>
+<?php Ti::endBlock(); ?>
+
+
+<?php Ti::endExtend(); ?>

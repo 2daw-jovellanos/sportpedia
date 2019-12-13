@@ -77,6 +77,7 @@ class Ti
         self::$extend = false;
         ob_start();
         $data = self::$data;
+        extract($data);
         require $viewname;
         echo ob_get_clean();
     }

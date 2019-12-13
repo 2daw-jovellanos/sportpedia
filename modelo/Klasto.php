@@ -1,5 +1,5 @@
 <?php
-require_once "OrmException.php";
+require_once "KlastoException.php";
 
 /**
  * Clase para conectar a la BD y realizar operaciones simples.
@@ -78,15 +78,23 @@ class Klasto
      * Obtiene conexión a la BD y fija codificación UTF8
      * 
      * Es privado para que no pueda utilizarse externamente (patrón singleton).
-     * @throws OrmException Lanza excepción ante fallo en conexión.
+     * @throws KlastoException Lanza excepción ante fallo en conexión.
      */
     private function __construct()
     {
         $this->conn = new mysqli(self::$host, self::$user, self::$pass, self::$dbname, self::$port);
         if ($this->conn->connect_error) {
-            throw new OrmException('No se pudo conectar a la BD: ' . $this->conn->connect_error);
+            throw new KlastoException('No se pudo conectar a la BD: ' . $this->conn->connect_error);
         }
         $this->conn->query("SET NAMES 'utf8'");
+    }
+
+    /**
+     * El destructor devuelve los recursos: Cierra la conexión.
+     */
+    public function __destruct()
+    {
+        $this->conn->close();
     }
 
     /**
@@ -106,7 +114,7 @@ class Klasto
      * @param string $sql
      * @param array $params
      * @return mysqli_stmt Sentencia preparada de mysqli
-     * @throws OrmException Lanza excepción ante fallo en sql, parámetros o envío.
+     * @throws KlastoException Lanza excepción ante fallo en sql, parámetros o envío.
      * @link https://www.php.net/manual/es/class.mysqli-stmt.php
      */
     private function executePrepared($sql, $params)
@@ -116,7 +124,8 @@ class Klasto
         $conn = $this->getConnection();
         $stmt = $conn->prepare($sql);
         if (!$stmt) {
-            throw new OrmException('Error en preparación sql. Revise SQL y parámetros.');
+            var_dump("en executeprepared");
+            throw new KlastoException('Error en preparación sql. Revise SQL y parámetros.', $sql, $params);
         }
         $types = ""; // los tipos se infieren del array de parámetros. Solo string, integer y double
         foreach ($params as $param) {
@@ -131,21 +140,46 @@ class Klasto
                     $types .= 's';
                     break;
                 default:
-                    throw new OrmException("Error en bind. No se admite el tipo del parámetro $param");
+                    throw new KlastoException("Error en bind. No se admite el tipo del parámetro $param", $sql, $params);
             }
         }
         if (strlen($types) && !$stmt->bind_param($types, ...$params)) {
-            throw new OrmException('Error en bind. Revise SQL y parámetros: ' . $stmt->error);
+            throw new KlastoException('Error en bind. Revise SQL y parámetros: ' . $stmt->error, $sql, $params);
         };
         if (!$stmt->execute()) {
-            throw new OrmException('Error en ejecucición sql. Revise SQL y parámetros: ' . $stmt->error);
+            throw new KlastoException('Error en ejecucición sql. Revise SQL y parámetros: ' . $stmt->error, $sql, $params);
         }
         return $stmt;
     }
 
     /**
+     * Método auxiliar para comprobar si el resultset tiene un campo llamado "id".
+     * NO USAR DIRECTAMENTE
+     * @return bool Devuelve tru si el resultset tiene un campo llamado id
+     */
+    private function hayUnId($resultset, $pkname ="id") : bool {
+        $info_campo = $resultset->fetch_fields();
+        foreach ($info_campo as $valor) {
+            if (strtolower($valor->name) == strtolower($pkname)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Envía una query tipo SELECT para su ejecución.
-     * Devuelve un array, de arrays asociativos, o un array de objetos de una clase.
+     * Procesa el resultado devuelto por la BD y lo devuelve como un array.
+     * <ul>
+     *    <li>Si se le pasa un nombre de clase, es un array de objetos de esa clase</li>
+     *    <li>Si no se le pasa nombre de clase, es un array de arrays asociativos con los nombres de los campos</li>
+     * </ul>
+     * Además:
+     * <ul>
+     *    <li>Si el resultset contiene un campo llamado "id", el array devuelto será asociativo, no indexado
+     *        y sus claves serán los id.
+     *    </li>
+     * </ul>
      *
      * @param string $sql La select con placeholders
      * @param array $params Array de parámetros, para sustitutuir los placeholders con ellos
@@ -157,6 +191,7 @@ class Klasto
     {
         $stmt = $this->executePrepared($sql, $params);
         $resultset = $stmt->get_result();
+        $hayId = $this->hayUnId($resultset);
         $resultado = [];
         $row = true;
         do {
@@ -166,13 +201,11 @@ class Klasto
                 $row = $resultset->fetch_assoc();
             }
             if ($row) {
-/* HAY UN BUG AQUI.
-                if (isset($row->id)) {
+                if ($hayId) {
                     $resultado[$row->id] = $row;
-                } else { */
+                } else { 
                     array_push($resultado, $row);
-/*                } */
-                
+                } 
             }
         } while ($row);
         $stmt->close();
@@ -190,7 +223,7 @@ class Klasto
      */
     public function queryOne(string $sql, array $params = [], string $classname = '')
     {
-        $r = $this->query($sql . " LIMIT 1", $params, $classname);
+        $r = $this->query($sql, $params, $classname);
         if (count($r)) {
             return $r[0];
         } else {
@@ -227,10 +260,29 @@ class Klasto
 
 
     /**
-     * El destructor cierra la conexión.
+     * Indica el comienzo de una transacción
      */
-    public function __destruct()
-    {
-        $this->conn->close();
+
+    public function startTransaction() {
+        $this->conn->autocommit(false);
     }
+
+    /**
+     * Finaliza con éxito una transacción
+     */
+    public function commit() {
+        $this->conn->query("COMMIT");
+        $this->conn->autocommit(true);
+    }
+
+    /**
+     * Termina una transacción
+     *
+     * @return void
+     */
+    public function rollback() {
+        $this->conn->query("ROLLBACK");
+        $this->conn->autocommit(true);
+    }
+
 }

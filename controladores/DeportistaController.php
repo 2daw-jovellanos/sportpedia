@@ -10,9 +10,10 @@ class DeportistaController extends Controller
 {
     
     function listado() {
+        $filtrodeporte = $_REQUEST["filtrodeporte"];
         // Interacción con el modelo
         $OrmSportpedia = new OrmSportpedia;
-        $deportistas = $OrmSportpedia->obtenerTodosDeportistas();
+        $deportistas = $OrmSportpedia->obtenerTodosDeportistas($filtrodeporte);
         $deportes = $OrmSportpedia->obtenerTodosDeportes();
         $title="Listado";
         $filtrodeporte = $_REQUEST["filtrodeporte"] ?? "";

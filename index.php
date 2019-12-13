@@ -14,6 +14,6 @@ try {
         default:
             die ("El controlador solicitado no existe");
     }
-} catch (Exception $ex) { 
-    Ti::render("vistas/Error500view.phtml");
+} catch (Exception $ex) {
+    echo Ti::render("vistas/Error500view.phtml", compact("ex"));
 }
